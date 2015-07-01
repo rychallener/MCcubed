@@ -187,6 +187,10 @@ def main():
                      dest="logfile",
                      help="Log file.",
                      action="store", default=None)
+  group.add_argument(      "--convquit",
+                     dest="convquit",
+                     help="How long after convergence to exit.",
+                     type=int,action="store", default=1)
   group.add_argument("-T", "--tracktime", dest="tractime", action="store_true")
   # Fitting-parameter Options:
   group = parser.add_argument_group("Fitting-function Options")
@@ -271,6 +275,7 @@ def main():
   tracktime  = args2.tractime
   logfile    = args2.logfile
   rms        = args2.rms
+  convquit   = args2.convquit
 
   func      = args2.func
   params    = args2.params
@@ -414,15 +419,12 @@ def main():
                      numit, nchains, walk, wlike,
                      leastsq, chisqscale, grtest, burnin,
                      thinning, plots, savefile, savemodel,
-                     comm, resume, log, rms)
-
+                     comm, resume, log, rms, convquit)
   if tracktime:
     stop = timeit.default_timer()
-
   # Close communications and disconnect:
   if mpi:
     mu.comm_disconnect(comm)
-
   #if bench == True:
   if tracktime:
     mu.msg(1, "Total execution time:   %10.6f s"%(stop - start), log)
@@ -437,7 +439,7 @@ def mcmc(data=None,     uncert=None,     func=None,     indparams=None,
          leastsq=None,  chisqscale=None, grtest=None,   burnin=None,
          thinning=None, plots=None,      savefile=None, savemodel=None,
          mpi=None,      resume=None,     logfile=None,  rms=None,
-         cfile=False):
+         cfile=False,	convquit=1):
   """
   MCMC wrapper for interactive session.
 
@@ -521,6 +523,10 @@ def mcmc(data=None,     uncert=None,     func=None,     indparams=None,
      If True, calculate the RMS of data-bestmodel.
   cfile: String
      Configuration file name.
+  convquit: Scalar
+     Multiplier for how many iterations to do after convergence, 1 means 
+     quit immediately after convergence.
+
 
   Returns:
   --------
@@ -604,6 +610,7 @@ def mcmc(data=None,     uncert=None,     func=None,     indparams=None,
     piargs.update({'resume':   resume})
     piargs.update({'logfile':  logfile})
     piargs.update({'rms':      rms})
+    piargs.update({'convquit': convquit})
 
     # Remove None values:
     for key in piargs.keys():

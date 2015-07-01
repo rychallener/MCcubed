@@ -68,7 +68,8 @@ def mcmc(data,         uncert=None,      func=None,     indparams=[],
          numit=10,     nchains=10,       walk='demc',   wlike=False,
          leastsq=True, chisqscale=False, grtest=True,   burnin=0,
          thinning=1,   plots=False,      savefile=None, savemodel=None,
-         comm=None,    resume=False,     log=None,      rms=False):
+         comm=None,    resume=False,     log=None,      rms=False,
+	 convquit=1):
   """
   This beautiful piece of code runs a Markov-chain Monte Carlo algoritm.
 
@@ -140,6 +141,9 @@ def mcmc(data,         uncert=None,      func=None,     indparams=[],
      If True resume a previous run.
   log: FILE pointer
      File object to write log into.
+  convquit: Scalar
+     Multiplier for how many iterations to do after convergence, 1 means 
+     quit immediately after convergence.
 
   Returns:
   --------
@@ -248,7 +252,7 @@ def mcmc(data,         uncert=None,      func=None,     indparams=[],
     mpars  = nparams
 
   # Intermediate steps to run GR test and print progress report:
-  intsteps   = chainlen / 10
+  intsteps   = chainlen / 25
 
   # Allocate arrays with variables:
   numaccept  = np.zeros(nchains)          # Number of accepted proposal jumps
@@ -378,6 +382,7 @@ def mcmc(data,         uncert=None,      func=None,     indparams=[],
 
   # Start loop:
   mu.msg(1, "Start MCMC chains  ({:s})".format(time.ctime()), log)
+  converged = False
   for i in np.arange(chainlen):
     # Proposal jump:
     if   walk == "mrw":
@@ -457,12 +462,14 @@ def mcmc(data,         uncert=None,      func=None,     indparams=[],
                   format(psrf), log)
         if np.all(psrf < 1.01):
           mu.msg(1, "All parameters have converged to within 1% of unity.", log)
+	  converged = i
       # Save current results:
       if savefile is not None:
         np.save(savefile, allparams[:,:,0:i+nold])
       if savemodel is not None:
         np.save(savemodel, allmodel[:,:,0:i+nold])
-
+      if converged and i >= (converged * convquit):
+	break
   # Stack together the chains:
   allstack = allparams[0, :, burnin:]
   for c in np.arange(1, nchains):
@@ -475,9 +482,9 @@ def mcmc(data,         uncert=None,      func=None,     indparams=[],
 
   # Print out Summary:
   mu.msg(1, "\nFin, MCMC Summary:\n------------------", log)
-
-  nsample   = (chainlen-burnin)*nchains # This sample
-  ntotal    = (nold+chainlen-burnin)*nchains
+  #em: Using i instead of chainlen due to breaking out before completion
+  nsample   = (i-burnin)*nchains # This sample
+  ntotal    = (nold+i-burnin)*nchains
   BIC       = bestchisq + nfree*np.log(ndata)
   redchisq  = bestchisq/(ndata-nfree)
   sdr       = np.std(bestmodel-data)
@@ -551,11 +558,10 @@ def mcmc(data,         uncert=None,      func=None,     indparams=[],
     if indparams != [] and np.size(indparams[0]) == ndata:
       mp.modelfit(data, uncert, indparams[0], bestmodel,
                                               savefile=fname+"_model.png")
-
+  
   # Save definitive results:
   if savefile is not None:
     np.save(savefile,  allparams)
   if savemodel is not None:
     np.save(savemodel, allmodel)
-
   return allstack, bestp
