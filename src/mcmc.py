@@ -318,6 +318,8 @@ def mcmc(data,         uncert=None,      func=None,     indparams=[],
     # Gather (receive) evaluated models:
     mpimodels = np.zeros(nchains*ndata, np.double)
     mu.comm_gather(comm, mpimodels)
+    flag = 0 #start as continue
+    mu.comm_gather(comm, flag)
     # Store them in models variable:
     models = np.reshape(mpimodels, (nchains, ndata))
   else:
@@ -407,8 +409,12 @@ def mcmc(data,         uncert=None,      func=None,     indparams=[],
 
     # Evaluate the models for the proposed parameters:
     if mpi:
+      print i
       mu.comm_scatter(comm, nextp[:,0:mpars].flatten(), MPI.DOUBLE)
+      print i
       mu.comm_gather(comm, mpimodels)
+      print i
+     
       models = np.reshape(mpimodels, (nchains, ndata))
     else:
       for c in np.where(~outflag)[0]:
@@ -448,6 +454,7 @@ def mcmc(data,         uncert=None,      func=None,     indparams=[],
       allmodel[:,:,i+nold] = models
   
     # Print intermediate info:
+    print i
     if ((i+1) % intsteps == 0) and (i > 0):
       mu.progressbar((i+1.0)/chainlen, log)
       mu.msg(1, "Out-of-bound Trials:\n {:s}".
@@ -468,8 +475,14 @@ def mcmc(data,         uncert=None,      func=None,     indparams=[],
         np.save(savefile, allparams[:,:,0:i+nold])
       if savemodel is not None:
         np.save(savemodel, allmodel[:,:,0:i+nold])
-      if converged and i >= (converged * convquit):
-	break
+    if mpi:
+	if converged and i >= (converged * convquit):
+		flag = 1 #to quit
+		mu.comm_gather(comm, flag)		
+		break
+	else:	
+		flag = 0 #to proceed
+		mu.comm_gather(comm, flag)
   # Stack together the chains:
   allstack = allparams[0, :, burnin:]
   for c in np.arange(1, nchains):

@@ -109,7 +109,8 @@ def main(comm):
 
   # Allocate array to receive parameters from MPI:
   params = np.zeros(npars, np.double)
-
+  # Allocate space for convergence flag:
+  flag = 0 #Proceed by default
   # Main MCMC Loop:
   while niter >= 0:
     # Receive parameters from MCMC:
@@ -122,7 +123,9 @@ def main(comm):
     # Send resutls:
     mu.comm_gather(comm, model, MPI.DOUBLE)
     niter -= 1
-
+    mu.comm_gather(comm, flag, MPI.INT)
+    if flag == 1:
+	niter = 0 #ends 
   # Close communications and disconnect:
   mu.comm_disconnect(comm)
 
