@@ -1,0 +1,618 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tutorial &mdash; MC3 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="MC3 1.0 documentation" href="index.html" />
+    <link rel="next" title="License" href="license.html" />
+    <link rel="prev" title="Getting Started" href="getstarted.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="license.html" title="License"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="getstarted.html" title="Getting Started"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">MC3 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tutorial">
+<span id="id1"></span><h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<p>This tutorial describes the available options when running an MCMC with MC3.
+As said before, the MCMC can be run from the shell prompt or through a function call in the Python interpreter.</p>
+<div class="section" id="argument-inputs">
+<h2>Argument Inputs<a class="headerlink" href="#argument-inputs" title="Permalink to this headline">¶</a></h2>
+<p>When running from the shell, the arguments can be input as command-line
+arguments.  To see all the available options, run:</p>
+<div class="highlight-shell"><div class="highlight"><pre>./mccubed.py --help
+</pre></div>
+</div>
+<p>When running from a Python interactive session, the arguments can be input as function arguments.  To see the available options, run:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">mccubed</span> <span class="kn">as</span> <span class="nn">mc3</span>
+<span class="n">help</span><span class="p">(</span><span class="n">mc3</span><span class="o">.</span><span class="n">mcmc</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Additionally, wether you are running the MCMC from the shell or from
+the interpreter, the arguments can be input through a configuration file.</p>
+</div>
+<div class="section" id="configuration-files">
+<h2>Configuration Files<a class="headerlink" href="#configuration-files" title="Permalink to this headline">¶</a></h2>
+<p>MC3&#8217;s configuration file follows the <a class="reference external" href="https://docs.python.org/2/library/configparser.html">ConfigParser</a> format. The following code block shows an example for an MC3 configuration file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Comment lines (like this one) are allowed and ignored</span>
+<span class="c"># Strings don&#39;t need quotation marks</span>
+<span class="p">[</span><span class="n">MCMC</span><span class="p">]</span>
+<span class="c"># DEMC general options:</span>
+<span class="n">nsamples</span>  <span class="o">=</span> <span class="mf">1e5</span>
+<span class="n">burnin</span>    <span class="o">=</span> <span class="mi">100</span>
+<span class="n">nchains</span>   <span class="o">=</span> <span class="mi">10</span>
+<span class="n">walk</span>      <span class="o">=</span> <span class="n">demc</span>
+<span class="n">mpi</span>       <span class="o">=</span> <span class="bp">True</span>
+<span class="c"># Fitting function options:</span>
+<span class="n">func</span>      <span class="o">=</span> <span class="n">quad</span> <span class="n">quadratic</span> <span class="o">../../</span><span class="n">examples</span><span class="o">/</span><span class="n">example01</span>
+<span class="n">params</span>    <span class="o">=</span> <span class="n">pars_ex02</span><span class="o">.</span><span class="n">dat</span>
+<span class="n">indparams</span> <span class="o">=</span> <span class="n">indp_ex02</span><span class="o">.</span><span class="n">dat</span>
+<span class="c"># The data and uncertainties:</span>
+<span class="n">data</span>      <span class="o">=</span> <span class="n">data_ex02</span><span class="o">.</span><span class="n">dat</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="mcmc-run-configuration">
+<h2>MCMC-run Configuration<a class="headerlink" href="#mcmc-run-configuration" title="Permalink to this headline">¶</a></h2>
+<p>The following example describes the basic MCMC argument configuration.
+The following sub-sections make up a script meant to be run from the Python
+interpreter.  The complete example script is located at <a class="reference external" href="https://github.com/pcubillos/MCcubed/blob/master/examples/tutorial01/tutorial01.py">tutorial01</a>.</p>
+<div class="section" id="data-and-data-uncertainties">
+<h3>Data and Data Uncertainties<a class="headerlink" href="#data-and-data-uncertainties" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">data</span></code> argument (required) defines the dataset to be fitted.
+This argument can be either a 1D float ndarray or the filename (a string)
+where the data array is located.</p>
+<p>The <code class="docutils literal"><span class="pre">uncert</span></code> argument (required) defines the <span class="math">\(1\sigma\)</span> uncertainties
+of the <code class="docutils literal"><span class="pre">data</span></code> array.
+This argument can be either a 1D float ndarray (same length of <code class="docutils literal"><span class="pre">data</span></code>) or the filename where the data uncertainties are located.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Create a synthetic dataset using a quadratic polynomial curve:</span>
+<span class="n">x</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>          <span class="c"># Independent model variable</span>
+<span class="n">p0</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.4</span><span class="p">,</span> <span class="mf">0.5</span>                     <span class="c"># True-underlying model parameters</span>
+<span class="n">y</span>  <span class="o">=</span> <span class="n">quad</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>                      <span class="c"># Noiseless model</span>
+<span class="n">uncert</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>           <span class="c"># Data points uncertainty</span>
+<span class="n">error</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">uncert</span><span class="p">)</span>  <span class="c"># Noise for the data</span>
+<span class="n">data</span>   <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">error</span>                    <span class="c"># Noisy data set</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">See the <a class="reference internal" href="#datafile"><span>Data</span></a> Section below to find out how to set <code class="docutils literal"><span class="pre">data</span></code> and <code class="docutils literal"><span class="pre">uncert</span></code> as a filename.</p>
+</div>
+</div>
+<div class="section" id="random-walk">
+<h3>Random Walk<a class="headerlink" href="#random-walk" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">walk</span></code> argument (optional) defines which random-walk algorithm will use the MCMC:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Choose between: {&#39;demc&#39; or &#39;mrw&#39;}:</span>
+<span class="n">walk</span>    <span class="o">=</span> <span class="s">&#39;demc&#39;</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal"><span class="pre">walk</span> <span class="pre">=</span> <span class="pre">mrw</span></code>, MC3 will use the classical Metropolis-Hastings
+algorithm with Gaussian proposal distributions.  I.e., in each
+iteration and for each parameter, <span class="math">\(\theta\)</span>, the MCMC will propose
+jumps, drawn from
+Gaussian distributions centered at the current value, <span class="math">\(\theta_0\)</span>, with
+a standard deviation, <span class="math">\(\sigma\)</span>, given by the values in the <code class="docutils literal"><span class="pre">stepsize</span></code>
+argument:</p>
+<div class="math" id="equation-gaussprop">
+<span class="eqno">(1)</span>\[q(\theta) = \frac{1}{\sqrt{2 \pi \sigma^2}}
+            \exp \left( -\frac{(\theta-\theta_0)^2}{2 \sigma^2}\right)\]</div>
+<p>If <code class="docutils literal"><span class="pre">walk</span> <span class="pre">=</span> <span class="pre">demc</span></code> (default value), MC3 will use Differential-Evolution MCMC algorithm (for further reading, see <a class="reference internal" href="#terbraak2006" id="id2">[terBraak2006]</a>).</p>
+</div>
+<div class="section" id="modeling-function">
+<h3>Modeling Function<a class="headerlink" href="#modeling-function" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">func</span></code> argument (required) defines the parameterized modeling function.
+The user can set <code class="docutils literal"><span class="pre">func</span></code> either as a callable, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Define the modeling function as a callable:</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;./../models/&quot;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">quadratic</span> <span class="kn">import</span> <span class="n">quad</span>
+<span class="n">func</span> <span class="o">=</span> <span class="n">quad</span>
+</pre></div>
+</div>
+<p>or as a tuple of strings pointing to the modeling function, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># A three-elements tuple indicates the function name, the module</span>
+<span class="c"># name (without the &#39;.py&#39; extension), and the path to the module.</span>
+<span class="n">func</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;quad&quot;</span><span class="p">,</span> <span class="s">&quot;quadratic&quot;</span><span class="p">,</span> <span class="s">&quot;./../models/&quot;</span><span class="p">)</span>
+
+<span class="c"># Alternatively, if the module is already within the scope of the</span>
+<span class="c"># python-path, the user can set func with a two-elements tuple:</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;./../models/&quot;</span><span class="p">)</span>
+<span class="n">func</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;quad&quot;</span><span class="p">,</span> <span class="s">&quot;quadratic&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Important!</p>
+<p class="last">The only requirement for the modeling function is that its arguments follow
+the same structure of the callable in <code class="docutils literal"><span class="pre">scipy.optimize.leastsq</span></code>, i.e.,
+the first argument contains the list of fitting parameters.</p>
+</div>
+<p>The <code class="docutils literal"><span class="pre">indparams</span></code> argument (optional) packs any additional argument that the
+modeling function may require:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># indparams contains additional arguments of func (if necessary). Each</span>
+<span class="c"># additional argument is an item in the indparams tuple:</span>
+<span class="n">indparams</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Even if there is only one additional argument to <code class="docutils literal"><span class="pre">func</span></code>, indparams must
+be defined as a tuple (as in the example above).  Eventually, the modeling
+function could be called with the following command:</p>
+<p class="last"><code class="docutils literal"><span class="pre">model</span> <span class="pre">=</span> <span class="pre">func(params,</span> <span class="pre">*indparams)</span></code></p>
+</div>
+</div>
+<div class="section" id="fitting-parameters">
+<h3>Fitting Parameters<a class="headerlink" href="#fitting-parameters" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">params</span></code> argument (required) contains the initial-guess values for the model fitting parameters.  The <code class="docutils literal"><span class="pre">params</span></code> argument must be a 1D float ndarray.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Array of initial-guess values of fitting parameters:</span>
+<span class="n">params</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="mf">20.0</span><span class="p">,</span>  <span class="o">-</span><span class="mf">2.0</span><span class="p">,</span>   <span class="mf">0.1</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">pmin</span></code> and <code class="docutils literal"><span class="pre">pmax</span></code> arguments (optional) set the lower and upper boundaries explored by the MCMC for each fitting parameter.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Lower and upper boundaries for the MCMC exploration:</span>
+<span class="n">pmin</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">10.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">20.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">10.0</span><span class="p">])</span>
+<span class="n">pmax</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="mf">40.0</span><span class="p">,</span>  <span class="mf">20.0</span><span class="p">,</span>  <span class="mf">10.0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>If a proposed step falls outside the set boundaries, that iteration is automatically rejected.  The default values for each element of <code class="docutils literal"><span class="pre">pmin</span></code> and <code class="docutils literal"><span class="pre">pmax</span></code> are <code class="docutils literal"><span class="pre">-np.inf</span></code> and <code class="docutils literal"><span class="pre">+np.inf</span></code>, respectively.  The <code class="docutils literal"><span class="pre">pmin</span></code> and <code class="docutils literal"><span class="pre">pmax</span></code> arguments must have the same size of <code class="docutils literal"><span class="pre">params</span></code>.</p>
+</div>
+<div class="section" id="stepsize-fixed-and-shared-paramerers">
+<h3>Stepsize, Fixed, and Shared Paramerers<a class="headerlink" href="#stepsize-fixed-and-shared-paramerers" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">stepsize</span></code> argument (optional) provides multiple uses.  The stepsize is a 1D float ndarray, where each element correspond to one of the fitting parameters.
+When <code class="docutils literal"><span class="pre">walk='mrw'</span></code>, <code class="docutils literal"><span class="pre">stepsize</span></code> sets the standard deviation, <span class="math">\(\sigma\)</span>, of the Gaussian proposal jump for the given parameter, see Eq. <a href="#equation-gaussprop">(1)</a>.
+When <code class="docutils literal"><span class="pre">walk='demc'</span></code>, <code class="docutils literal"><span class="pre">stepsize</span></code> sets the standard-deviation jump <strong>only</strong> of the initial jump (which is used to initialize the chains).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># stepsize determines the standard deviation of the proposal Gaussian function:</span>
+<span class="c"># For Metropolis Random Walk, the Gaussian function draws the parameter</span>
+<span class="c"># proposals for each iteration.</span>
+<span class="c"># For Differential Evolution MCMC, the Gaussian function draws the</span>
+<span class="c"># starting values of the chains about the initial-guess values.</span>
+<span class="n">stepsize</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>  <span class="mf">1.0</span><span class="p">,</span>   <span class="mf">0.5</span><span class="p">,</span>   <span class="mf">0.1</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>If the user wants to fix a parameter at the given initial-guess value, set the stepsize of the given parameter to <span class="math">\(0\)</span>.</p>
+<p>If the user wants to share the same value for multiple parameters along the MCMC exploration (multiple parametes will), set the stepsize of the parameter equal to the negative index of the sharing parameter, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># If I want the second, third, and fourth model parameters to share the same value:</span>
+<span class="n">stepsize</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Clearly, in the given example it doesn&#8217;t make sense to share parameter
+values.  However, for an eclipe model for example, one may want to share
+the ingress and egress times.</p>
+</div>
+</div>
+<div class="section" id="parameter-priors">
+<h3>Parameter Priors<a class="headerlink" href="#parameter-priors" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">prior</span></code>, <code class="docutils literal"><span class="pre">priorlow</span></code>, and <code class="docutils literal"><span class="pre">priorup</span></code> arguments (optional) set the
+prior probability distributions of the fitting parameters.
+Each of these arguments is a 1D float ndarray.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># priorlow defines wether to use uniform non-informative (priorlow = 0.0),</span>
+<span class="c"># Jeffreys non-informative (priorlow &lt; 0.0), or Gaussian prior (priorlow &gt; 0.0).</span>
+<span class="c"># prior and priorup are irrelevant if priorlow &lt;= 0 (for a given parameter)</span>
+<span class="n">prior</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">,</span>   <span class="mf">0.0</span><span class="p">])</span> <span class="c"># The prior value</span>
+<span class="n">priorlow</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">,</span>   <span class="mf">0.0</span><span class="p">])</span>
+<span class="n">priorup</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="mf">0.0</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">,</span>   <span class="mf">0.0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>MC3 supports three types of priors.
+If <code class="docutils literal"><span class="pre">priorlow</span></code> is 0.0 (default) for a given parameter, the MCMC will apply
+a uniform non-informative prior:</p>
+<div class="math">
+\[p(\theta) = \frac{1}{\theta_{\rm max} - \theta_{\rm min}},\]</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is appropriate when there is no prior knowledge of the value of <span class="math">\(\theta\)</span>.</p>
+</div>
+<p>If <code class="docutils literal"><span class="pre">priorlow</span></code> is less than <span class="math">\(0.0\)</span> for a given parameter,
+the MCMC will apply a Jeffreys non-informative prior
+(uniform probability per order of magnitude):</p>
+<div class="math">
+\[p(\theta) = \frac{1}{\theta \ln(\theta_{\rm max}/\theta_{\rm min})},\]</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is valid only when the parameter takes positive values.
+This is a more appropriate prior than a uniform prior when <span class="math">\(\theta\)</span>
+can take values over several orders of magnitude.
+For more information, see <a class="reference internal" href="#gregory2005" id="id3">[Gregory2005]</a>, Sec. 3.7.1.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Practical note!</p>
+<p class="last">In practice, I have seen better results when one fits <span class="math">\(\log(\theta)\)</span> rather than <span class="math">\(\theta\)</span> with a Jeffreys prior.</p>
+</div>
+<p>Lastly, if <code class="docutils literal"><span class="pre">priorlow</span></code> is greater than  <span class="math">\(0.0\)</span> for a given parameter,
+the MCMC will apply a Gaussian informative prior:</p>
+<div class="math">
+\[p(\theta) = \frac{1}{\sqrt{2\pi\sigma_{p}^{2}}}
+       \exp\left(\frac{-(\theta-\theta_{p})^{2}}{2\sigma_{p}^{2}}\right),\]</div>
+<p>were <code class="docutils literal"><span class="pre">prior</span></code> sets the prior value <span class="math">\(\theta_{p}\)</span>, and
+<code class="docutils literal"><span class="pre">priorlow</span></code> and <code class="docutils literal"><span class="pre">priorup</span></code>
+setting the lower and upper <span class="math">\(1\sigma\)</span> prior uncertainties,
+<span class="math">\(\sigma_{p}\)</span>, of the prior (depending if the proposed value
+<span class="math">\(\theta\)</span> is lower or higher than <span class="math">\(\theta_{p}\)</span>).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Note that, even when the parameter boundaries are not known or when
+the parameter is unbound, this prior is suitable for use in the MCMC
+sampling, since the proposed and current state priors divide out in
+the Metropolis ratio.</p>
+</div>
+</div>
+<div class="section" id="mcmc-chains-configuration">
+<h3>MCMC Chains Configuration<a class="headerlink" href="#mcmc-chains-configuration" title="Permalink to this headline">¶</a></h3>
+<p>The following arguments set the MCMC chains configuration:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mpi</span>      <span class="o">=</span> <span class="bp">True</span> <span class="c"># Multiple or single-CPU run</span>
+<span class="n">numit</span>    <span class="o">=</span> <span class="mf">3e4</span>  <span class="c"># Number of MCMC samples to compute</span>
+<span class="n">nchains</span>  <span class="o">=</span> <span class="mi">10</span>   <span class="c"># Number of parallel chains</span>
+<span class="n">burnin</span>   <span class="o">=</span> <span class="mi">100</span>  <span class="c"># Number of burned-in samples per chain</span>
+<span class="n">thinning</span> <span class="o">=</span>   <span class="mi">1</span>  <span class="c"># Thinning factor for outputs</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">mpi</span></code> argument (optional, boolean, default=False) determines if
+MC3 will run in multiple or a single CPU.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In a multi-core run, MC3 will assign one CPU to each chain.</p>
+</div>
+<p>The <code class="docutils literal"><span class="pre">numit</span></code> argument (optional, float, default=1e5) sets the total
+number of samples to compute.</p>
+<p>The <code class="docutils literal"><span class="pre">nchains</span></code> argument (optional, integer, default=10) sets the number
+of parallel chains to use.  The number of iterations run for each chain
+will be <code class="docutils literal"><span class="pre">numit/nchains</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Even for single-core runs, the MCMC exploration will use
+<code class="docutils literal"><span class="pre">nchains</span></code> parallel chains.</p>
+</div>
+<p>The <code class="docutils literal"><span class="pre">burnin</span></code> argument (optional, integer, default=0) sets the number
+of burned-in (removed) iterations at the beginning of each chain.</p>
+<p>The <code class="docutils literal"><span class="pre">thinning</span></code> argument (optional, integer, default=1) sets the chains
+thinning factor (discarding all but every <code class="docutils literal"><span class="pre">thinning</span></code>-th sample).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Thinning is often unnecessary for a DEMC run, since this algorithm
+reduces significatively the sampling autocorrelation.</p>
+</div>
+</div>
+<div class="section" id="optimization">
+<h3>Optimization<a class="headerlink" href="#optimization" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">leastsq</span></code> argument (optional, boolean, default=False) is a flag that
+indicates MC3 to run a least-squares optimization before running the MCMC.
+MC3 implements the Levenberg-Marquardt algorithm via the
+<code class="docutils literal"><span class="pre">scipy.optimize.leastsq</span></code> function.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The parameter boundaries,  fixed and shared-values, and priors
+setup will apply for the minimization.</p>
+</div>
+<p>The <code class="docutils literal"><span class="pre">chisqscale</span></code> argument (optional, boolean, default=False) is a flag that
+indicates MC3 to scale the data uncertainties to force a reduced
+<span class="math">\(\chi^{2}\)</span> equal to <span class="math">\(1\)</span>.  The scaling applies by multiplying all
+uncertainties by a common scale factor.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">leastsq</span>    <span class="o">=</span> <span class="bp">True</span>   <span class="c"># Least-squares minimization prior to the MCMC</span>
+<span class="n">chisqscale</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># Scale the data uncertainties such red.chisq = 1</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="gelman-rubin-convergence-test">
+<h3>Gelman-Rubin Convergence Test<a class="headerlink" href="#gelman-rubin-convergence-test" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">grtest</span></code> argument (optional, boolean, default=False) is a flag that
+indicates MC3 to run the Gelman-Rubin convergence test for the MCMC sample of
+fitting parameters.
+Values substantially larger than 1 indicate non-convergence.
+See <a class="reference internal" href="#gelmanrubin1992" id="id4">[GelmanRubin1992]</a> for further information.</p>
+<p>The <code class="docutils literal"><span class="pre">grexit</span></code> argument (optional, boolean, default=False)
+is a flag that allows the MCMC to stop if the Gelman-Rubin test returns
+values below 1.01 for all parameter, two consecutive times.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">grtest</span>  <span class="o">=</span> <span class="bp">True</span>   <span class="c"># Calculate the GR convergence test</span>
+<span class="n">grexit</span>  <span class="o">=</span> <span class="bp">False</span>  <span class="c"># Stop the MCMC after two successful GR</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The Gelman-Rubin test is computed every 10% of the MCMC exploration.</p>
+</div>
+</div>
+<div class="section" id="wavelet-likelihood-mcmc">
+<h3>Wavelet-Likelihood MCMC<a class="headerlink" href="#wavelet-likelihood-mcmc" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">wlike</span></code> argument (optional, boolean, default=False) allows MC3 to
+implement the Wavelet-based method to estimate time-correlated noise.
+When using this method, the used must append the three additional fitting
+parameters (<span class="math">\(\gamma, \sigma_{r}, \sigma_{w}\)</span>) from Carter &amp; Winn (2009)
+to the end of the <code class="docutils literal"><span class="pre">params</span></code> array.  Likewise, add the correspoding values
+to the <code class="docutils literal"><span class="pre">pmin</span></code>, <code class="docutils literal"><span class="pre">pmax</span></code>, <code class="docutils literal"><span class="pre">stepsize</span></code>, <code class="docutils literal"><span class="pre">prior</span></code>, <code class="docutils literal"><span class="pre">priorlow</span></code>,
+and <code class="docutils literal"><span class="pre">priorup</span></code> arrays.
+For further information see <a class="reference internal" href="#carterwinn2009" id="id5">[CarterWinn2009]</a>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">wlike</span> <span class="o">=</span> <span class="bp">False</span>  <span class="c"># Use Carter &amp; Winn&#39;s Wavelet-likelihood method.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="file-outputs">
+<h3>File Outputs<a class="headerlink" href="#file-outputs" title="Permalink to this headline">¶</a></h3>
+<p>The following arguments set the output files produced by MC3:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">logfile</span>   <span class="o">=</span> <span class="s">&#39;MCMC.log&#39;</span>         <span class="c"># Save the MCMC screen outputs to file</span>
+<span class="n">savefile</span>  <span class="o">=</span> <span class="s">&#39;MCMC_sample.npy&#39;</span>  <span class="c"># Save the MCMC parameters sample to file</span>
+<span class="n">savemodel</span> <span class="o">=</span> <span class="s">&#39;MCMC_models.npy&#39;</span>  <span class="c"># Save the MCMC evaluated models to file</span>
+<span class="n">plots</span>     <span class="o">=</span> <span class="bp">True</span>               <span class="c"># Generate best-fit, trace, and posterior plots</span>
+<span class="n">rms</span>       <span class="o">=</span> <span class="bp">False</span>              <span class="c"># Compute and plot the time-averaging test</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">logfile</span></code> argument (optional, string, default=None)
+sets the-text file name where to store MC3&#8217;s screen output.</p>
+<p>The <code class="docutils literal"><span class="pre">savefile</span></code> and <code class="docutils literal"><span class="pre">savemodel</span></code> arguments (optional, string, default=None)
+set the file names where to store the MCMC parameters sample and evaluated
+models.
+MC3 saves the files as three-dimensional <code class="docutils literal"><span class="pre">.npy</span></code> binary files,
+The first dimension corresponds to the chain index,
+the second dimension the fitting parameter or data point
+(for <code class="docutils literal"><span class="pre">savefile</span></code> and <code class="docutils literal"><span class="pre">savemodel</span></code>, respectively),
+and the third dimension the iteration number.
+The files can be read with the <code class="docutils literal"><span class="pre">numpy.load()</span></code> function.</p>
+<p>The <code class="docutils literal"><span class="pre">plots</span></code> argument (optional, boolean, default=False) is a flag that
+indicates MC3 to generate and store the data (along with the best-fitting
+model) plot,
+the MCMC-chain trace plot for each parameter,
+and the marginalized and pair-wise posterior plots.</p>
+<p>The <code class="docutils literal"><span class="pre">rms</span></code> argument (optional, boolean, default=False) is a flag that
+indicates MC3 to compute the time-averaging test for time-correlated noise
+and generate a rms-vs-binsize plot.  For further information see <a class="reference internal" href="#winn2008" id="id6">[Winn2008]</a>.</p>
+</div>
+<div class="section" id="returned-values">
+<h3>Returned Values<a class="headerlink" href="#returned-values" title="Permalink to this headline">¶</a></h3>
+<p>When run from a pyhton interactive session, MC3 will return two arrays:
+<code class="docutils literal"><span class="pre">posterior</span></code> a 2D array containing the burned-in, thinned MCMC sample
+of the parameters posterior distribution (with dimensions
+[nparameters, nsamples]); and <code class="docutils literal"><span class="pre">bestp</span></code>, a 1D array with the best-fitting
+parameters.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Run the MCMC:</span>
+<span class="n">posterior</span><span class="p">,</span> <span class="n">bestp</span> <span class="o">=</span> <span class="n">mc3</span><span class="o">.</span><span class="n">mcmc</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">uncert</span><span class="o">=</span><span class="n">uncert</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">indparams</span><span class="o">=</span><span class="n">indparams</span><span class="p">,</span>
+               <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">pmin</span><span class="o">=</span><span class="n">pmin</span><span class="p">,</span> <span class="n">pmax</span><span class="o">=</span><span class="n">pmax</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="n">stepsize</span><span class="p">,</span>
+               <span class="n">prior</span><span class="o">=</span><span class="n">prior</span><span class="p">,</span> <span class="n">priorlow</span><span class="o">=</span><span class="n">priorlow</span><span class="p">,</span> <span class="n">priorup</span><span class="o">=</span><span class="n">priorup</span><span class="p">,</span>
+               <span class="n">leastsq</span><span class="o">=</span><span class="n">leastsq</span><span class="p">,</span> <span class="n">chisqscale</span><span class="o">=</span><span class="n">chisqscale</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="n">mpi</span><span class="p">,</span>
+               <span class="n">numit</span><span class="o">=</span><span class="n">numit</span><span class="p">,</span> <span class="n">nchains</span><span class="o">=</span><span class="n">nchains</span><span class="p">,</span> <span class="n">walk</span><span class="o">=</span><span class="n">walk</span><span class="p">,</span> <span class="n">burnin</span><span class="o">=</span><span class="n">burnin</span><span class="p">,</span>
+               <span class="n">grtest</span><span class="o">=</span><span class="n">grtest</span><span class="p">,</span> <span class="n">grexit</span><span class="o">=</span><span class="n">grexit</span><span class="p">,</span> <span class="n">wlike</span><span class="o">=</span><span class="n">wlike</span><span class="p">,</span> <span class="n">logfile</span><span class="o">=</span><span class="n">logfile</span><span class="p">,</span>
+               <span class="n">plots</span><span class="o">=</span><span class="n">plots</span><span class="p">,</span> <span class="n">savefile</span><span class="o">=</span><span class="n">savefile</span><span class="p">,</span> <span class="n">savemodel</span><span class="o">=</span><span class="n">savemodel</span><span class="p">,</span> <span class="n">rms</span><span class="o">=</span><span class="n">rms</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="resume-an-mc3-run">
+<h3>Resume an MC3 Run<a class="headerlink" href="#resume-an-mc3-run" title="Permalink to this headline">¶</a></h3>
+<p>TBD</p>
+</div>
+</div>
+<div class="section" id="inputs-from-files">
+<h2>Inputs from Files<a class="headerlink" href="#inputs-from-files" title="Permalink to this headline">¶</a></h2>
+<p>TBD</p>
+<p># As said in the help description, the data, uncert, indparams, params,
+# pmin, pmax, stepsize, prior, priorlow, and priorup arrays can be
+# read from a text file.  In this case, set the argument to be the file name.</p>
+<p># Each line in the &#8216;indparams&#8217; file must contain one element of the indparams
+# list, the values separated by (one or more) empty spaces.
+# The other files must contain one array value per line (i.e., column-wise).</p>
+<p># Furthermore, the &#8216;data&#8217; file can also contain the uncert array (as a second
+# column, values separated by a empty space).
+# Likewise, the &#8216;params&#8217; file can contain the pmin, pmax, stepsize, prior,
+# priorlow, and priorup arrays (as many or as few, provided that they are
+# written in columns in that precise order).</p>
+<p>The array arguments of  mc3.mcmc can be read from text/binary
+files.  In this case, set the argument to the file name.  The values
+of the <code class="docutils literal"><span class="pre">data</span></code>, <code class="docutils literal"><span class="pre">uncert</span></code>, and <code class="docutils literal"><span class="pre">indparams</span></code> must be stored in
+binary format, whereas the <code class="docutils literal"><span class="pre">params</span></code>, <code class="docutils literal"><span class="pre">pmin</span></code>, <code class="docutils literal"><span class="pre">pmax</span></code>,
+<code class="docutils literal"><span class="pre">stepsize</span></code>, <code class="docutils literal"><span class="pre">prior</span></code>, <code class="docutils literal"><span class="pre">priorlow</span></code>, and <code class="docutils literal"><span class="pre">priorup</span></code> arrays
+must be column-wise stored in plain ASCII format.</p>
+<p>Furthermore, the <code class="docutils literal"><span class="pre">data</span></code> and the <code class="docutils literal"><span class="pre">uncert</span></code> arrays can be stored
+into a single file.  Likewise, the <code class="docutils literal"><span class="pre">params</span></code>, <code class="docutils literal"><span class="pre">pmin</span></code>,
+<code class="docutils literal"><span class="pre">pmax</span></code>, <code class="docutils literal"><span class="pre">stepsize</span></code>, <code class="docutils literal"><span class="pre">prior</span></code>, <code class="docutils literal"><span class="pre">priorlow</span></code>, and
+<code class="docutils literal"><span class="pre">priorup</span></code> arrays can be stored into a single file, having white-space
+separated columns for each argument.  The user can append as many or
+as few of these columns as long as they follow that exact order (e.g.,
+you can&#8217;t include the priors if you don&#8217;t include the stepsize).</p>
+<p>The <code class="docutils literal"><span class="pre">mcutils</span></code> module provides the functions <code class="docutils literal"><span class="pre">writedata</span></code> and
+<code class="docutils literal"><span class="pre">writebin</span></code> to easily create these files.  Accordingly, the
+<code class="docutils literal"><span class="pre">read2array</span></code> and <code class="docutils literal"><span class="pre">readbin</span></code> function read these files.  For
+example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Store binary array:</span>
+<span class="n">mu</span><span class="o">.</span><span class="n">writebin</span><span class="p">([</span><span class="n">data</span><span class="p">],</span>         <span class="s">&#39;data_ex01.dat&#39;</span><span class="p">)</span>
+<span class="c"># Store multiple arrays in binary format:</span>
+<span class="n">mu</span><span class="o">.</span><span class="n">writebin</span><span class="p">([</span><span class="n">data</span><span class="p">,</span> <span class="n">uncert</span><span class="p">],</span> <span class="s">&#39;data_ex01.dat&#39;</span><span class="p">)</span>
+<span class="n">mu</span><span class="o">.</span><span class="n">writedata</span><span class="p">(</span><span class="n">indparams</span><span class="p">,</span> <span class="s">&#39;indp_ex01.dat&#39;</span><span class="p">)</span>
+<span class="c"># Store ASCII arrays:</span>
+<span class="n">mu</span><span class="o">.</span><span class="n">writedata</span><span class="p">([</span><span class="n">params</span><span class="p">,</span> <span class="n">pmin</span><span class="p">,</span> <span class="n">pmax</span><span class="p">,</span> <span class="n">stepsize</span><span class="p">],</span> <span class="s">&#39;pars_ex01.dat&#39;</span><span class="p">)</span>
+
+<span class="c"># To run MCMC, set the arguments to the file names:</span>
+<span class="n">data</span>      <span class="o">=</span> <span class="s">&#39;data_ex01.dat&#39;</span>
+<span class="n">params</span>    <span class="o">=</span> <span class="s">&#39;pars_ex01.dat&#39;</span>
+<span class="n">indparams</span> <span class="o">=</span> <span class="s">&#39;indp_ex01.dat&#39;</span>
+<span class="c"># Run MCMC:</span>
+<span class="n">allp</span><span class="p">,</span> <span class="n">bp</span> <span class="o">=</span> <span class="n">mc3</span><span class="o">.</span><span class="n">mcmc</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">indparams</span><span class="o">=</span><span class="n">indparams</span><span class="p">,</span>
+                    <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+                    <span class="n">numit</span><span class="o">=</span><span class="n">numit</span><span class="p">,</span> <span class="n">nchains</span><span class="o">=</span><span class="n">nchains</span><span class="p">,</span> <span class="n">walk</span><span class="o">=</span><span class="n">walk</span><span class="p">,</span> <span class="n">grtest</span><span class="o">=</span><span class="n">grtest</span><span class="p">,</span>
+                    <span class="n">leastsq</span><span class="o">=</span><span class="n">leastsq</span><span class="p">,</span> <span class="n">chisqscale</span><span class="o">=</span><span class="n">chisqscale</span><span class="p">,</span>
+                    <span class="n">burnin</span><span class="o">=</span><span class="n">burnin</span><span class="p">,</span> <span class="n">plots</span><span class="o">=</span><span class="n">plots</span><span class="p">,</span> <span class="n">savefile</span><span class="o">=</span><span class="n">savefile</span><span class="p">,</span>
+                    <span class="n">savemodel</span><span class="o">=</span><span class="n">savemodel</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="n">mpi</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Empty or comment lines are allowed (and ignored by the reader).
+A valid params file look like this:</p>
+<div class="highlight-none"><div class="highlight"><pre>#       params            pmin            pmax        stepsize
+            10             -10              60               1
+            16             -20              20             0.5
+          -1.8             -10              10             0.1
+</pre></div>
+</div>
+<p>If data, uncert, params, pmin, pmax, stepsize, prior, priorlow,
+or priorup are set as filenames, the file must contain one value per
+line.</p>
+<div class="section" id="data">
+<span id="datafile"></span><h3>Data<a class="headerlink" href="#data" title="Permalink to this headline">¶</a></h3>
+<p>TDB</p>
+<p>For simplicity, the data file can hold both data and uncert arrays.
+In this case, each line contains one value from each array per line,
+separated by an empty-space character.</p>
+<p>Data can be in a file.</p>
+</div>
+<div class="section" id="id7">
+<h3>Fitting Parameters<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>TDB</p>
+<p>Similarly, params can hold: params, pmin, pmax, stepsize, priorlow,
+and priorup.  The file can hold as few or as many array as long as
+they are provided in that exact order.</p>
+</div>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<table class="docutils citation" frame="void" id="carterwinn2009" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[CarterWinn2009]</a></td><td><a class="reference external" href="http://adsabs.harvard.edu/abs/2009ApJ...704...51C">Carter &amp; Winn (2009): Parameter Estimation from Time-series Data with Correlated Errors: A Wavelet-based Method and its Application to Transit Light Curves</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="gelmanrubin1992" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[GelmanRubin1992]</a></td><td><a class="reference external" href="http://projecteuclid.org/euclid.ss/1177011136">Gelman &amp; Rubin (1992): Inference from Iterative Simulation Using Multiple Sequences</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="gregory2005" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[Gregory2005]</a></td><td><a class="reference external" href="http://adsabs.harvard.edu/abs/2005blda.book.....G">Gregory (2005): Bayesian Logical Data Analysis for the Physical Sciences</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="terbraak2006" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[terBraak2006]</a></td><td><a class="reference external" href="http://dx.doi.org/10.1007/s11222-006-8769-1">ter Braak (2006): A Markov Chain Monte Carlo version of the genetic algorithm Differential Evolution</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="winn2008" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[Winn2008]</a></td><td><a class="reference external" href="http://adsabs.harvard.edu/abs/2008ApJ...683.1076W">Winn et al. (2008): The Transit Light Curve Project. IX. Evidence for a Smaller Radius of the Exoplanet XO-3b</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getstarted.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#argument-inputs">Argument Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-files">Configuration Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mcmc-run-configuration">MCMC-run Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data-and-data-uncertainties">Data and Data Uncertainties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#random-walk">Random Walk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#modeling-function">Modeling Function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fitting-parameters">Fitting Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stepsize-fixed-and-shared-paramerers">Stepsize, Fixed, and Shared Paramerers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameter-priors">Parameter Priors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mcmc-chains-configuration">MCMC Chains Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optimization">Optimization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gelman-rubin-convergence-test">Gelman-Rubin Convergence Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#wavelet-likelihood-mcmc">Wavelet-Likelihood MCMC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#file-outputs">File Outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#returned-values">Returned Values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#resume-an-mc3-run">Resume an MC3 Run</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#inputs-from-files">Inputs from Files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data">Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">Fitting Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="getstarted.html"
+                        title="previous chapter">Getting Started</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="license.html"
+                        title="next chapter">License</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="license.html" title="License"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="getstarted.html" title="Getting Started"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">MC3 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015-2016, Patricio Cubillos.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.3.
+    </div>
+  </body>
+</html>
